@@ -1,2 +1,2 @@
-# wild-snake-boa-ii
-A snake game for MS-DOS.
+# Wild Snake Boa II
+A snake game for MS-DOS. Work in progress.
