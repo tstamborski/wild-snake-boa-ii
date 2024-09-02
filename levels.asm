@@ -85,40 +85,48 @@ Level_Run:
     and al, al
     jz Level_NextLevel
 
+    mov dx, 0x60
+    in ax, dx
+    cmp al, 0x48
+    jnz .n1
+    mov al, DIR_UP
+    mov [snake_direction], al
+    jmp .process
+    .n1:
+    cmp al, 0x4b
+    jnz .n2
+    mov al, DIR_LEFT
+    mov [snake_direction], al
+    jmp .process
+    .n2:
+    cmp al, 0x4d
+    jnz .n3
+    mov al, DIR_RIGHT
+    mov [snake_direction], al
+    jmp .process
+    .n3:
+    cmp al, 0x50
+    jnz .n4
+    mov al, DIR_DOWN
+    mov [snake_direction], al
+    jmp .process
+    .n4:
+    cmp al, 0x39
+    jnz .n5
+    mov ax, 0x01
+    mov [level_slower], ax
+    jmp .process
+    .n5:
     mov ah, 0x01
     int 0x16
     jz .process
     xor ah, ah
     int 0x16
     cmp ah, 0x01 ;Esc
-    jnz .n0
+    jnz .process
     mov al, [is_paused]
     xor al, 0xff
     call Status_SetPaused
-    jmp .process
-    .n0:
-    cmp ah, 0x48
-    jnz .n1
-    mov al, DIR_UP
-    mov [snake_direction], al
-    jmp .process
-    .n1:
-    cmp ah, 0x4b
-    jnz .n2
-    mov al, DIR_LEFT
-    mov [snake_direction], al
-    jmp .process
-    .n2:
-    cmp ah, 0x4d
-    jnz .n3
-    mov al, DIR_RIGHT
-    mov [snake_direction], al
-    jmp .process
-    .n3:
-    cmp ah, 0x50
-    jnz .process
-    mov al, DIR_DOWN
-    mov [snake_direction], al
 
     .process:
     mov al, [is_paused]
@@ -184,16 +192,18 @@ Level_Hit:
 
     mov ax, NOTE_C4
     call Music_Beep4
+    xor ax, ax
+    mov [level_last_item], al
     jmp Level_LoadLevel
 
 Level_GameOver:
     call Status_PrintGameOver
     mov ax, NOTE_D4
-    call Music_Beep4
+    call Music_Beep2
     mov ax, NOTE_CS4
-    call Music_Beep8
+    call Music_Beep4
     mov ax, NOTE_C4
-    call Music_Beep8
+    call Music_Beep4
 
     mov ah, 0x08
     int 0x21
@@ -206,9 +216,7 @@ Level_GameOver:
     call Hiscore_IsHiscore
     and ax, ax
     jz MainMenu_Load
-    call Hiscore_AddScore
-    call Hiscore_Save
-    jmp HiscoreRoom_Load
+    jmp Hiscore_GetPlayerName
 
 Level_LoadRLE:
     ;es == 0xb800
@@ -281,6 +289,8 @@ Level_AddScore:
     ;al <- kod powerup'a do zebrania
     mov bl, al
     mov dl, [player_score]
+    add al, al ;kod x 2 = punkty
+    daa
     add al, dl
     daa
     mov [player_score], al
@@ -349,7 +359,7 @@ Level_AddScore:
 
 Level_NextLevel:
     mov ax, NOTE_C5
-    call Music_Beep8
+    call Music_Beep4
     mov ax, NOTE_CS5
     call Music_Beep16
     mov ax, NOTE_F5
@@ -461,14 +471,14 @@ level_number:
     db 0x00
 
 level0:
-    incbin "level00.rle"
+    incbin "levels/level00.rle"
     db 0xff, 0x00
 level1:
-    incbin "level01.rle"
+    incbin "levels/level01.rle"
     db 0xff, 0x00
 level2:
-    incbin "level02.rle"
+    incbin "levels/level02.rle"
     db 0xff, 0x00
 level3:
-    incbin "level03.rle"
+    incbin "levels/level03.rle"
     db 0xff, 0x00

@@ -22,7 +22,7 @@ Init:
     jmp MainMenu_Load
 
 font_data:
-    incbin "font.dat"
+    incbin "misc/font.dat"
 
 %include "misc.asm"
 %include "pcspeaker.asm"

@@ -219,4 +219,4 @@ scroll_slower_value:
     db MAX_SCROLL_SLOWER_VALUE
 
 logo_data:
-    incbin "logo2.bin", 0, 2000
+    incbin "misc/logo3.bin", 0, 2000
