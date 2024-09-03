@@ -284,7 +284,7 @@ hall_of_fame_str:
 
 hiscores_begin:
 hiscore_max_level:
-    db 0x03
+    db 0x00
 
 hiscore_name0:
     db "NOBODY"

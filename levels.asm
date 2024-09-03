@@ -7,7 +7,7 @@ ITEM_COUNTER_FACTOR equ 5
     .cmplevelnumber:
     mov al, [level_number]
 %assign i 0
-%rep 4
+%rep 10
     cmp al, 0x%+i
     jne %%s%+i
     mov si, level%+i
@@ -73,7 +73,7 @@ Level_GetLevelNumber:
     and al, al
     jz .keyloop
     sub al, 1
-    daa
+    das
     mov [level_number], al
     add al, 1
     daa
@@ -357,7 +357,7 @@ Level_PutChar:
     jb .fend
     cmp al, 0x20
     jae .fend
-    mov ah, 0x4f
+    mov ah, 0x1f
     .fend:
     mov [es:di], ax
     ret
@@ -564,4 +564,22 @@ level2:
     db 0xff, 0x00
 level3:
     incbin "levels/level03.rle"
+    db 0xff, 0x00
+level4:
+    incbin "levels/level04.rle"
+    db 0xff, 0x00
+level5:
+    incbin "levels/level05.rle"
+    db 0xff, 0x00
+level6:
+    incbin "levels/level06.rle"
+    db 0xff, 0x00
+level7:
+    incbin "levels/level07.rle"
+    db 0xff, 0x00
+level8:
+    incbin "levels/level08.rle"
+    db 0xff, 0x00
+level9:
+    incbin "levels/level09.rle"
     db 0xff, 0x00
