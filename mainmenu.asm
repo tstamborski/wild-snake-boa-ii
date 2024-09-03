@@ -6,6 +6,7 @@ MainMenu_Load:
     mov ax, 0xb800
     mov es, ax
     call ClearScreen
+    call ClearKeyboardBuffer
 
     mov al, [hiscore_score0]
     mov [best_score], al
@@ -137,7 +138,7 @@ MainMenu_NewGame:
     mov al, 0x03
     mov [player_lives], al
 
-    jmp Level_Init
+    jmp Level_GetLevelNumber
 
 MainMenu_PutMenuChar:
     mov ah, 0x8e

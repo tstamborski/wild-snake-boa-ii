@@ -3,42 +3,114 @@ MAX_STARS equ 0x10
 
 ITEM_COUNTER_FACTOR equ 5
 
+%macro cmplevelnumber 0
+    .cmplevelnumber:
+    mov al, [level_number]
+%assign i 0
+%rep 4
+    cmp al, 0x%+i
+    jne %%s%+i
+    mov si, level%+i
+    jmp .skipall
+    %%s%+i:
+    %assign i i+1
+%endrep
+    mov al, 0x00
+    mov [level_number], al
+    jmp .cmplevelnumber
+    .skipall:
+%endmacro
+
+Level_GetLevelNumber:
+    mov al, [hiscore_max_level]
+    and al, al
+    jz Level_Init
+
+    call Speaker_Mute
+    call ClearKeyboardBuffer
+    call ClearScreen
+    mov si, level_str
+    mov di, 80*24*2+36*2
+    call PrintString
+
+    .keyloop:
+    mov ah, 0x00
+    int 0x16
+    cmp ah, 0x48 ;UP
+    je .levelup
+    cmp ah, 0x50 ;DOWN
+    je .leveldown
+    cmp ah, 0x39
+    je .accept
+    cmp ah, 0x1c
+    je .accept
+    cmp ah, 0x01
+    je .cancel
+    jmp .keyloop
+
+    .levelup:
+    mov al, [level_number]
+    mov dl, [hiscore_max_level]
+    cmp al, dl
+    jae .keyloop
+    add al, 1
+    daa
+    mov [level_number], al
+    add al, 1
+    daa
+    mov dl, al
+    and dl, 0x0f
+    add dl, '0'
+    mov [es:di-2], dl
+    mov dl, al
+    shr dl, 4
+    add dl, '0'
+    mov [es:di-4], dl
+    jmp .keyloop
+
+    .leveldown:
+    mov al, [level_number]
+    and al, al
+    jz .keyloop
+    sub al, 1
+    daa
+    mov [level_number], al
+    add al, 1
+    daa
+    mov dl, al
+    and dl, 0x0f
+    add dl, '0'
+    mov [es:di-2], dl
+    mov dl, al
+    shr dl, 4
+    add dl, '0'
+    mov [es:di-4], dl
+    jmp .keyloop
+
+    .cancel:
+    jmp MainMenu_Load
+
+    .accept: ;dalej do Level_Init
+
 Level_Init:
-    mov sp, 0xffff
-    mov bp, sp
-    mov ax, 0xb800
-    mov es, ax
     mov si, no_tune
     call Tune_Load
     xor ax, ax
     mov [level_last_item], al
-Level_LoadLevel:
-    mov al, [level_number]
-    cmp al, 0x00
-    jne .s0
-    mov si, level0
-    jmp .skipall
-    .s0:
-    cmp al, 0x01
-    jne .s1
-    mov si, level1
-    jmp .skipall
-    .s1:
-    cmp al, 0x02
-    jne .s2
-    mov si, level2
-    jmp .skipall
-    .s2:
-    cmp al, 0x03
-    jne .s3
-    mov si, level3
-    jmp .skipall
-    .s3:
-    mov al, 0x00
-    mov [level_number], al
-    jmp Level_LoadLevel
 
-    .skipall:
+Level_LoadLevel:
+    mov sp, 0xffff
+    mov bp, sp
+    mov ax, 0xb800
+    mov es, ax
+
+    cmplevelnumber
+
+    cmp al, [hiscore_max_level]
+    jbe .notnewlevel
+    mov [hiscore_max_level], al
+    .notnewlevel:
+
     movzx cx, al
     inc cx
     xor al, al
@@ -51,6 +123,7 @@ Level_LoadLevel:
     call Status_Print
     call Level_NextItem
 
+    call ClearKeyboardBuffer
     .wait4key:
     mov ah, 0x01
     int 0x16
@@ -194,7 +267,7 @@ Level_Hit:
     call Music_Beep4
     xor ax, ax
     mov [level_last_item], al
-    jmp Level_LoadLevel
+    jmp Level_Init
 
 Level_GameOver:
     call Status_PrintGameOver
@@ -215,8 +288,12 @@ Level_GameOver:
 
     call Hiscore_IsHiscore
     and ax, ax
-    jz MainMenu_Load
+    jz .tomainmenu
     jmp Hiscore_GetPlayerName
+
+    .tomainmenu:
+    call Hiscore_Save
+    jmp MainMenu_Load
 
 Level_LoadRLE:
     ;es == 0xb800
@@ -367,8 +444,11 @@ Level_NextLevel:
     mov ax, NOTE_FS5
     call Music_Beep16
 
-    inc byte [level_number]
-    jmp Level_Init
+    mov al, [level_number]
+    add al, 1
+    daa
+    mov [level_number], al
+    jmp Level_LoadLevel
 
 Level_NextItem:
     call SRand
@@ -457,6 +537,9 @@ Level_PutItem:
     .fend:
     mov [es:di], ax
     ret
+
+level_str:
+    db "LEVEL 01", 0x00
 
 level_slower:
     dw MAX_LEVEL_SLOWER_VALUE

@@ -1,3 +1,13 @@
+ClearKeyboardBuffer:
+	mov ah, 0x01
+	int 0x16
+	jz .fend
+	xor ah, ah
+	int 0x16
+	jmp ClearKeyboardBuffer
+	.fend:
+	ret
+
 ClearScreen:
 	mov cx, 80*50
 	mov ax, 0x0000

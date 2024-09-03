@@ -109,6 +109,8 @@ Hiscore_IsBetterThan:
 
 Hiscore_GetPlayerName:
     call ClearScreen
+    call ClearKeyboardBuffer
+
     mov si, enter_name_str
     mov di, 80*25*2+23*2
     call PrintString
@@ -194,6 +196,7 @@ HiscoreRoom_Load:
     mov si, sto_lat
     call Tune_Load
     call ClearScreen
+    call ClearKeyboardBuffer
 
     mov al, 0x09
     mov [default_attributes], al
@@ -280,6 +283,9 @@ hall_of_fame_str:
     db "HALL OF FAME", 0x00
 
 hiscores_begin:
+hiscore_max_level:
+    db 0x03
+
 hiscore_name0:
     db "NOBODY"
     times 7 db 0x00
